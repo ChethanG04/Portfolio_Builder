@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portfolio Builder - Create Your Professional Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            margin: 0;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6b5b95 0%, #feb236 100%);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1),
+                0 10px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.3);
+            border-color: #ff69b4;
+        }
+
+        .resume-paper {
+            background: linear-gradient(to bottom, #ffffff 0%, #f9f9f9 100%);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1),
+                0 4px 6px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(
+                to right,
+                transparent 0%,
+                #ff69b4 50%,
+                transparent 100%
+            );
+            margin: 12px 0;
+        }
+
+        button {
+            border-radius: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .text-purple-600 {
+            color: #6b5b95;
+        }
+
+        .text-gray-700 {
+            color: #4a4a4a;
+        }
+
+        .text-gray-800 {
+            color: #333333;
+        }
+
+        /* Modal Animations */
+        .slide-in {
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar style for preview */
+        #resume-preview::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #resume-preview::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #resume-preview::-webkit-scrollbar-thumb {
+            background-color: #c48fde;
+            border-radius: 10px;
+            border: 2px solid #f1f1f1;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 1024px) {
+            main .flex {
+                flex-direction: column;
+            }
+            #preview-section {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.7);
+                z-index: 1000;
+                padding: 1rem;
+                overflow: auto;
+            }
+            #preview-section > div {
+                max-width: 100%;
+                max-height: 90vh;
+                margin: auto;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen select-none">
+    <!-- Auth Container -->
+    <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-md">
+            <!-- Logo and Title -->
+            <div class="text-center mb-8">
+                <div
+                    class="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-4 floating"
+                    title="Portfolio Builder Logo"
+                >
+                    <i class="fas fa-user-tie text-3xl text-purple-600"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Portfolio Builder</h1>
+                <p class="text-gray-600 mt-2">
+                    Create your professional portfolio in minutes
+                </p>
+            </div>
+
+            <!-- Tabs -->
+            <div
+                class="flex mb-6 rounded-lg bg-white p-1 shadow cursor-pointer"
+                role="tablist"
+            >
+                <button
+                    id="login-tab"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="login-form"
+                    tabindex="0"
+                    class="flex-1 py-2 px-4 rounded-md font-medium text-white gradient-bg"
+                >
+                    Login
+                </button>
+                <button
+                    id="signup-tab"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="signup-form"
+                    tabindex="-1"
+                    class="flex-1 py-2 px-4 rounded-md font-medium text-gray-700"
+                >
+                    Sign Up
+                </button>
+            </div>
+
+            <!-- Login Form -->
+            <div
+                id="login-form"
+                role="tabpanel"
+                tabindex="0"
+                class="bg-white rounded-lg shadow-lg p-6 fade-in"
+            >
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="login-email"
+                        >Email</label
+                    >
+                    <input
+                        type="email"
+                        id="login-email"
+                        autocomplete="username"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="your@email.com"
+                    />
+                </div>
+                <div class="mb-6">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="login-password"
+                        >Password</label
+                    >
+                    <input
+                        type="password"
+                        id="login-password"
+                        autocomplete="current-password"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="••••••••"
+                    />
+                </div>
+                <button
+                    id="login-btn"
+                    class="w-full gradient-bg text-white py-2 px-4 rounded-md font-medium"
+                >
+                    Login
+                </button>
+                <div class="text-center mt-4 text-sm text-gray-600">
+                    <a href="#" class="text-purple-600 hover:underline">Forgot password?</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div
+                id="signup-form"
+                role="tabpanel"
+                tabindex="0"
+                class="bg-white rounded-lg shadow-lg p-6 hidden fade-in"
+            >
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="signup-name"
+                        >Full Name</label
+                    >
+                    <input
+                        type="text"
+                        id="signup-name"
+                        autocomplete="name"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="Jaanu"
+                    />
+                </div>
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="signup-email"
+                        >Email</label
+                    >
+                    <input
+                        type="email"
+                        id="signup-email"
+                        autocomplete="email"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="your@email.com"
+                    />
+                </div>
+                <div class="mb-4">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="signup-password"
+                        >Password</label
+                    >
+                    <input
+                        type="password"
+                        id="signup-password"
+                        autocomplete="new-password"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="••••••••"
+                    />
+                </div>
+                <div class="mb-6">
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="signup-confirm"
+                        >Confirm Password</label
+                    >
+                    <input
+                        type="password"
+                        id="signup-confirm"
+                        autocomplete="new-password"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="••••••••"
+                    />
+                </div>
+                <button
+                    id="signup-btn"
+                    class="w-full gradient-bg text-white py-2 px-4 rounded-md font-medium"
+                >
+                    Create Account
+                </button>
+                <div class="text-center mt-4 text-sm text-gray-600">
+                    Already have an account?
+                    <a href="#" class="text-purple-600 hover:underline login-link">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Container -->
+    <div id="dashboard-container" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div
+                class="container mx-auto px-4 py-4 flex justify-between items-center max-w-7xl"
+            >
+                <div class="flex items-center">
+                    <i class="fas fa-user-tie text-2xl mr-2" aria-hidden="true"></i>
+                    <h1 class="text-xl font-bold">Portfolio Builder</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button
+                        id="preview-btn"
+                        class="bg-white text-purple-600 px-4 py-2 rounded-md font-medium hover:bg-gray-100"
+                    >
+                        <i class="fas fa-eye mr-2"></i> Preview
+                    </button>
+                    <button
+                        id="download-btn"
+                        class="bg-purple-800 text-white px-4 py-2 rounded-md font-medium hover:bg-purple-700"
+                    >
+                        <i class="fas fa-download mr-2"></i> Download PDF
+                    </button>
+                    <button id="logout-btn" class="text-white hover:text-gray-200" title="Logout">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                        <span class="sr-only">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8 max-w-7xl">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Form Section -->
+                <section class="w-full lg:w-2/3" aria-label="Portfolio form section">
+                    <div
+                        class="bg-white rounded-lg shadow-lg p-6 mb-6 card-hover"
+                        aria-labelledby="personal-details-title"
+                    >
+                        <h2
+                            class="text-xl font-bold text-gray-800 mb-4 flex items-center"
+                            id="personal-details-title"
+                        >
+                            <i class="fas fa-user-circle text-purple-600 mr-2"></i>
+                            Personal Details
+                        </h2>
+
+                        <form id="portfolio-form" novalidate>
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                aria-describedby="personal-details-description"
+                            >
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="full-name"
+                                        >Full Name *</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="full-name"
+                                        name="full_name"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="Jaanu"
+                                        required
+                                        aria-required="true"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="job-title"
+                                        >Job Title *</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="job-title"
+                                        name="job_title"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="Software Developer"
+                                        required
+                                        aria-required="true"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="email"
+                                        >Email *</label
+                                    >
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="your@email.com"
+                                        required
+                                        aria-required="true"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="phone"
+                                        >Phone *</label
+                                    >
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="+91 8431809449"
+                                        required
+                                        aria-required="true"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="location"
+                                        >Location</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="location"
+                                        name="location"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="Bangalore, India"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-gray-700 text-sm font-bold mb-2"
+                                        for="website"
+                                        >Website</label
+                                    >
+                                    <input
+                                        type="url"
+                                        id="website"
+                                        name="website"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                        placeholder="https://yourwebsite.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label
+                                    class="block text-gray-700 text-sm font-bold mb-2"
+                                    for="summary"
+                                    >Professional Summary</label
+                                >
+                                <textarea
+                                    id="summary"
+                                    name="summary"
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                                    placeholder="Briefly describe yourself and your professional background..."
+                                ></textarea>
+                            </div>
+
+                            <div class="mt-6">
+                                <button
+                                    type="submit"
+                                    class="gradient-bg text-white py-2 px-6 rounded-md font-medium"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Experience Section -->
+                    <div
+                        class="bg-white rounded-lg shadow-lg p-6 mb-6 card-hover"
+                        aria-labelledby="experience-title"
+                    >
+                        <div class="flex justify-between items-center mb-4">
+                            <h2
+                                class="text-xl font-bold text-gray-800 flex items-center"
+                                id="experience-title"
+                            >
+                                <i
+                                    class="fas fa-briefcase text-purple-600 mr-2"
+                                    aria-hidden="true"
+                                ></i>
+                                Work Experience
+                            </h2>
+                            <button
+                                id="add-experience"
+                                aria-label="Add work experience"
+                                class="text-sm gradient-bg text-white px-3 py-1 rounded-md hover:opacity-90"
+                            >
+                                <i class="fas fa-plus mr-1"></i> Add
+                            </button>
+                        </div>
+                        <div id="experience-container" aria-live="polite" aria-atomic="true"></div>
+                    </div>
+
+                    <!-- Education Section -->
+                    <div
+                        class="bg-white rounded-lg shadow-lg p-6 mb-6 card-hover"
+                        aria-labelledby="education-title"
+                    >
+                        <div class="flex justify-between items-center mb-4">
+                            <h2
+                                class="text-xl font-bold text-gray-800 flex items-center"
+                                id="education-title"
+                            >
+                                <i
+                                    class="fas fa-graduation-cap text-purple-600 mr-2"
+                                    aria-hidden="true"
+                                ></i>
+                                Education
+                            </h2>
+                            <button
+                                id="add-education"
+                                aria-label="Add education"
+                                class="text-sm gradient-bg text-white px-3 py-1 rounded-md hover:opacity-90"
+                            >
+                                <i class="fas fa-plus mr-1"></i> Add
+                            </button>
+                        </div>
+                        <div id="education-container" aria-live="polite" aria-atomic="true"></div>
+                    </div>
+
+                    <!-- Skills Section -->
+                    <div
+                        class="bg-white rounded-lg shadow-lg p-6 mb-6 card-hover"
+                        aria-labelledby="skills-title"
+                    >
+                        <div class="flex justify-between items-center mb-4">
+                            <h2
+                                class="text-xl font-bold text-gray-800 flex items-center"
+                                id="skills-title"
+                            >
+                                <i
+                                    class="fas fa-code text-purple-600 mr-2"
+                                    aria-hidden="true"
+                                ></i>
+                                Skills
+                            </h2>
+                            <button
+                                id="add-skill"
+                                aria-label="Add skill"
+                                class="text-sm gradient-bg text-white px-3 py-1 rounded-md hover:opacity-90"
+                            >
+                                <i class="fas fa-plus mr-1"></i> Add
+                            </button>
+                        </div>
+                        <div id="skills-container" aria-live="polite" aria-atomic="true"></div>
+                    </div>
+
+                    <!-- Certificates Section -->
+                    <div
+                        class="bg-white rounded-lg shadow-lg p-6 card-hover"
+                        aria-labelledby="certificates-title"
+                    >
+                        <div class="flex justify-between items-center mb-4">
+                            <h2
+                                class="text-xl font-bold text-gray-800 flex items-center"
+                                id="certificates-title"
+                            >
+                                <i
+                                    class="fas fa-certificate text-purple-600 mr-2"
+                                    aria-hidden="true"
+                                ></i>
+                                Certifications
+                            </h2>
+                            <button
+                                id="add-certificate"
+                                aria-label="Add certificate"
+                                class="text-sm gradient-bg text-white px-3 py-1 rounded-md hover:opacity-90"
+                            >
+                                <i class="fas fa-plus mr-1"></i> Add
+                            </button>
+                        </div>
+                        <div
+                            id="certificates-container"
+                            aria-live="polite"
+                            aria-atomic="true"
+                        ></div>
+                    </div>
+                </section>
+
+                <!-- Preview Section -->
+                <aside
+                    id="preview-section"
+                    class="w-full lg:w-1/3 hidden"
+                    aria-label="Portfolio Preview"
+                    tabindex="0"
+                >
+                    <div class="sticky top-8">
+                        <div
+                            class="bg-white rounded-lg shadow-lg p-6 mb-6 resume-paper"
+                        >
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold text-gray-800">
+                                    Portfolio Preview
+                                </h2>
+                                <button
+                                    id="close-preview"
+                                    class="text-gray-500 hover:text-gray-700"
+                                    aria-label="Close preview"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="resume-preview" aria-live="polite" aria-atomic="true" tabindex="0">
+                                <!-- Resume preview will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates -->
+
+    <template id="experience-template">
+        <div
+            class="experience-item mb-4 p-4 border border-gray-200 rounded-md hover:bg-gray-50 relative"
+            tabindex="0"
+        >
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-gray-800 job-title"></h3>
+                    <p class="text-gray-600 company-name"></p>
+                    <p class="text-sm text-gray-500 date-range"></p>
+                </div>
+                <div class="flex space-x-2">
+                    <button
+                        class="edit-experience text-blue-500 hover:text-blue-700"
+                        aria-label="Edit experience"
+                    >
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                        class="delete-experience text-red-500 hover:text-red-700"
+                        aria-label="Delete experience"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-2 text-gray-700 description"></div>
+        </div>
+    </template>
+
+    <template id="education-template">
+        <div
+            class="education-item mb-4 p-4 border border-gray-200 rounded-md hover:bg-gray-50 relative"
+            tabindex="0"
+        >
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-gray-800 degree"></h3>
+                    <p class="text-gray-600 institution"></p>
+                    <p class="text-sm text-gray-500 education-date"></p>
+                </div>
+                <div class="flex space-x-2">
+                    <button
+                        class="edit-education text-blue-500 hover:text-blue-700"
+                        aria-label="Edit education"
+                    >
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                        class="delete-education text-red-500 hover:text-red-700"
+                        aria-label="Delete education"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="skill-template">
+        <div class="skill-item mb-2 mr-2 inline-block" tabindex="0">
+            <div
+                class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center"
+            >
+                <span class="skill-name"></span>
+                <button
+                    class="delete-skill ml-2 text-purple-600 hover:text-purple-900"
+                    aria-label="Delete skill"
+                >
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="certificate-template">
+        <div
+            class="certificate-item mb-4 p-4 border border-gray-200 rounded-md hover:bg-gray-50 relative"
+            tabindex="0"
+        >
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-gray-800 certificate-name"></h3>
+                    <p class="text-gray-600 issuing-organization"></p>
+                    <p class="text-sm text-gray-500 certificate-date"></p>
+                </div>
+                <div class="flex space-x-2">
+                    <button
+                        class="edit-certificate text-blue-500 hover:text-blue-700"
+                        aria-label="Edit certificate"
+                    >
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                        class="delete-certificate text-red-500 hover:text-red-700"
+                        aria-label="Delete certificate"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Modals -->
+
+    <!-- Generic function to create modals with consistent style -->
+    <!-- Experience Modal -->
+    <div
+        id="experience-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="experience-modal-title"
+    >
+        <div
+            class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md slide-in overflow-auto max-h-[90vh]"
+        >
+            <div class="flex justify-between items-center mb-4">
+                <h3
+                    id="experience-modal-title"
+                    class="text-lg font-bold text-gray-800"
+                >
+                    Add Work Experience
+                </h3>
+                <button
+                    id="close-experience-modal"
+                    class="text-gray-500 hover:text-gray-700"
+                    aria-label="Close experience modal"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-job-title"
+                        >Job Title *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-job-title"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        required
+                    />
+                </div>
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-company"
+                        >Company *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-company"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        required
+                    />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="modal-start-date"
+                            >Start Date *</label
+                        >
+                        <input
+                            type="text"
+                            id="modal-start-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                            placeholder="MM/YYYY"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="modal-end-date"
+                            >End Date *</label
+                        >
+                        <input
+                            type="text"
+                            id="modal-end-date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                            placeholder="MM/YYYY or Present"
+                            required
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-description"
+                        >Description</label
+                    >
+                    <textarea
+                        id="modal-description"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                    ></textarea>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button
+                    id="cancel-experience"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    id="save-experience"
+                    class="px-4 py-2 gradient-bg text-white rounded-md hover:opacity-90"
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Education Modal -->
+    <div
+        id="education-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="education-modal-title"
+    >
+        <div
+            class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md slide-in overflow-auto max-h-[90vh]"
+        >
+            <div class="flex justify-between items-center mb-4">
+                <h3
+                    id="education-modal-title"
+                    class="text-lg font-bold text-gray-800"
+                >
+                    Add Education
+                </h3>
+                <button
+                    id="close-education-modal"
+                    class="text-gray-500 hover:text-gray-700"
+                    aria-label="Close education modal"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-degree"
+                        >Degree *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-degree"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="Bachelor of Science"
+                        required
+                    />
+                </div>
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-institution"
+                        >Institution *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-institution"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="University of Technology"
+                        required
+                    />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="modal-education-start"
+                            >Start Date *</label
+                        >
+                        <input
+                            type="text"
+                            id="modal-education-start"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                            placeholder="MM/YYYY"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="modal-education-end"
+                            >End Date *</label
+                        >
+                        <input
+                            type="text"
+                            id="modal-education-end"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                            placeholder="MM/YYYY"
+                            required
+                        />
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button
+                    id="cancel-education"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    id="save-education"
+                    class="px-4 py-2 gradient-bg text-white rounded-md hover:opacity-90"
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Modal -->
+    <div
+        id="certificate-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="certificate-modal-title"
+    >
+        <div
+            class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md slide-in overflow-auto max-h-[90vh]"
+        >
+            <div class="flex justify-between items-center mb-4">
+                <h3
+                    id="certificate-modal-title"
+                    class="text-lg font-bold text-gray-800"
+                >
+                    Add Certification
+                </h3>
+                <button
+                    id="close-certificate-modal"
+                    class="text-gray-500 hover:text-gray-700"
+                    aria-label="Close certificate modal"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-certificate-name"
+                        >Certificate Name *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-certificate-name"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="AWS Certified Developer"
+                        required
+                    />
+                </div>
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-issuing-org"
+                        >Issuing Organization *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-issuing-org"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="Amazon Web Services"
+                        required
+                    />
+                </div>
+                <div>
+                    <label
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        for="modal-certificate-date"
+                        >Issue Date *</label
+                    >
+                    <input
+                        type="text"
+                        id="modal-certificate-date"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                        placeholder="MM/YYYY"
+                        required
+                    />
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button
+                    id="cancel-certificate"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    id="save-certificate"
+                    class="px-4 py-2 gradient-bg text-white rounded-md hover:opacity-90"
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Input Modal -->
+    <div
+        id="skill-input-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="skill-modal-title"
+    >
+        <div
+            class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md slide-in overflow-auto max-h-[90vh]"
+        >
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="skill-modal-title" class="text-lg font-bold text-gray-800">
+                    Add Skill
+                </h3>
+                <button
+                    id="close-skill-modal"
+                    class="text-gray-500 hover:text-gray-700"
+                    aria-label="Close skill modal"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label
+                    class="block text-gray-700 text-sm font-bold mb-2"
+                    for="modal-skill-name"
+                    >Skill Name *</label
+                >
+                <input
+                    type="text"
+                    id="modal-skill-name"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none input-focus"
+                    placeholder="JavaScript, Python, etc."
+                    required
+                />
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button
+                    id="cancel-skill"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                    Cancel
+                </button>
+                <button
+                    id="save-skill"
+                    class="px-4 py-2 gradient-bg text-white rounded-md hover:opacity-90"
+                >
+                    Add Skill
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            // --- Authentication Elements & Logic ---
+            const authContainer = document.getElementById('auth-container');
+            const dashboardContainer = document.getElementById('dashboard-container');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const loginBtn = document.getElementById('login-btn');
+            const signupBtn = document.getElementById('signup-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginLinks = [...document.querySelectorAll('.login-link')];
+
+            let currentUser = null;
+
+            // --- Dashboard Elements ---
+            const previewBtn = document.getElementById('preview-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const closePreview = document.getElementById('close-preview');
+            const previewSection = document.getElementById('preview-section');
+            const resumePreview = document.getElementById('resume-preview');
+
+            const portfolioForm = document.getElementById('portfolio-form');
+            const fullNameInput = document.getElementById('full-name');
+            const jobTitleInput = document.getElementById('job-title');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const locationInput = document.getElementById('location');
+            const websiteInput = document.getElementById('website');
+            const summaryInput = document.getElementById('summary');
+
+            // Experience
+            const addExperienceBtn = document.getElementById('add-experience');
+            const experienceContainer = document.getElementById('experience-container');
+            const experienceTemplate = document.getElementById('experience-template').content;
+
+            // Education
+            const addEducationBtn = document.getElementById('add-education');
+            const educationContainer = document.getElementById('education-container');
+            const educationTemplate = document.getElementById('education-template').content;
+
+            // Skills
+            const addSkillBtn = document.getElementById('add-skill');
+            const skillsContainer = document.getElementById('skills-container');
+            const skillTemplate = document.getElementById('skill-template').content;
+
+            // Certificates
+            const addCertificateBtn = document.getElementById('add-certificate');
+            const certificatesContainer = document.getElementById('certificates-container');
+            const certificateTemplate = document.getElementById('certificate-template').content;
+
+            // Modals
+            const experienceModal = document.getElementById('experience-modal');
+            const educationModal = document.getElementById('education-modal');
+            const certificateModal = document.getElementById('certificate-modal');
+            const skillInputModal = document.getElementById('skill-input-modal');
+
+            // Close, Cancel, Save buttons for modals
+            // Experience modal controls
+            const closeExperienceModalBtn = document.getElementById('close-experience-modal');
+            const cancelExperienceBtn = document.getElementById('cancel-experience');
+            const saveExperienceBtn = document.getElementById('save-experience');
+            const modalJobTitle = document.getElementById('modal-job-title');
+            const modalCompany = document.getElementById('modal-company');
+            const modalStartDate = document.getElementById('modal-start-date');
+            const modalEndDate = document.getElementById('modal-end-date');
+            const modalDescription = document.getElementById('modal-description');
+
+            // Education modal controls
+            const closeEducationModalBtn = document.getElementById('close-education-modal');
+            const cancelEducationBtn = document.getElementById('cancel-education');
+            const saveEducationBtn = document.getElementById('save-education');
+            const modalDegree = document.getElementById('modal-degree');
+            const modalInstitution = document.getElementById('modal-institution');
+            const modalEducationStart = document.getElementById('modal-education-start');
+            const modalEducationEnd = document.getElementById('modal-education-end');
+
+            // Certificate modal controls
+            const closeCertificateModalBtn = document.getElementById('close-certificate-modal');
+            const cancelCertificateBtn = document.getElementById('cancel-certificate');
+            const saveCertificateBtn = document.getElementById('save-certificate');
+            const modalCertificateName = document.getElementById('modal-certificate-name');
+            const modalIssuingOrg = document.getElementById('modal-issuing-org');
+            const modalCertificateDate = document.getElementById('modal-certificate-date');
+
+            // Skill modal controls
+            const closeSkillModalBtn = document.getElementById('close-skill-modal');
+            const cancelSkillBtn = document.getElementById('cancel-skill');
+            const saveSkillBtn = document.getElementById('save-skill');
+            const modalSkillName = document.getElementById('modal-skill-name');
+
+            // Tracking current editing items
+            let editingExperience = null; // element being edited or null
+            let editingEducation = null;
+            let editingCertificate = null;
+
+            // --- Authentication --- //
+
+            // Switch to Signup tab
+            function showSignup() {
+                signupForm.classList.remove('hidden');
+                signupForm.setAttribute('aria-hidden', 'false');
+                loginForm.classList.add('hidden');
+                loginForm.setAttribute('aria-hidden', 'true');
+                signupTab.classList.add('gradient-bg', 'text-white');
+                signupTab.classList.remove('text-gray-700');
+                signupTab.setAttribute('aria-selected', 'true');
+                signupTab.setAttribute('tabindex', '0');
+                loginTab.classList.remove('gradient-bg', 'text-white');
+                loginTab.classList.add('text-gray-700');
+                loginTab.setAttribute('aria-selected', 'false');
+                loginTab.setAttribute('tabindex', '-1');
+            }
+
+            // Switch to Login tab
+            function showLogin() {
+                loginForm.classList.remove('hidden');
+                loginForm.setAttribute('aria-hidden', 'false');
+                signupForm.classList.add('hidden');
+                signupForm.setAttribute('aria-hidden', 'true');
+                loginTab.classList.add('gradient-bg', 'text-white');
+                loginTab.classList.remove('text-gray-700');
+                loginTab.setAttribute('aria-selected', 'true');
+                loginTab.setAttribute('tabindex', '0');
+                signupTab.classList.remove('gradient-bg', 'text-white');
+                signupTab.classList.add('text-gray-700');
+                signupTab.setAttribute('aria-selected', 'false');
+                signupTab.setAttribute('tabindex', '-1');
+            }
+
+            loginTab.addEventListener('click', e => {
+                showLogin();
+            });
+            signupTab.addEventListener('click', e => {
+                showSignup();
+            });
+
+            loginLinks.forEach(link =>
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    showLogin();
+                })
+            );
+
+            // A simple 'fake' login - accepts any non-empty email and password
+            loginBtn.addEventListener('click', e => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value.trim();
+
+                if (!email || !password) {
+                    alert('Please enter both email and password.');
+                    return;
+                }
+                // Here could be real authentication logic. For this app, accept anything.
+                currentUser = { email };
+                authenticateUser();
+            });
+
+            // Simple signup logic
+            signupBtn.addEventListener('click', e => {
+                e.preventDefault();
+                const name = document.getElementById('signup-name').value.trim();
+                const email = document.getElementById('signup-email').value.trim();
+                const password = document.getElementById('signup-password').value.trim();
+                const confirm = document.getElementById('signup-confirm').value.trim();
+
+                if (!name || !email || !password || !confirm) {
+                    alert('Please fill all fields.');
+                    return;
+                }
+                if (password !== confirm) {
+                    alert('Passwords do not match.');
+                    return;
+                }
+                currentUser = { name, email };
+                alert('Account created successfully!');
+                authenticateUser();
+            });
+
+            // Authenticate user: hide auth, show dashboard
+            function authenticateUser() {
+                authContainer.style.display = 'none';
+                dashboardContainer.style.display = 'block';
+                // Reset auth forms
+                loginForm.querySelectorAll('input').forEach(i => (i.value = ''));
+                signupForm.querySelectorAll('input').forEach(i => (i.value = ''));
+            }
+
+            logoutBtn.addEventListener('click', e => {
+                if (confirm('Are you sure you want to logout?')) {
+                    currentUser = null;
+                    dashboardContainer.style.display = 'none';
+                    authContainer.style.display = 'flex';
+                    // clear all data on logout
+                    clearAllData();
+                }
+            });
+
+            // --- Portfolio Form Submit --- //
+            portfolioForm.addEventListener('submit', e => {
+                e.preventDefault();
+                if (!portfolioForm.checkValidity()) {
+                    portfolioForm.reportValidity();
+                    return;
+                }
+                alert('Portfolio details saved!');
+            });
+
+            // --- Experience Management --- //
+            addExperienceBtn.addEventListener('click', e => {
+                editingExperience = null;
+                openExperienceModal();
+            });
+
+            closeExperienceModalBtn.addEventListener('click', e => {
+                closeExperienceModal();
+            });
+            cancelExperienceBtn.addEventListener('click', e => {
+                closeExperienceModal();
+            });
+
+            saveExperienceBtn.addEventListener('click', e => {
+                saveExperience();
+            });
+
+            function openExperienceModal(experienceData) {
+                if (experienceData) {
+                    modalJobTitle.value = experienceData.jobTitle;
+                    modalCompany.value = experienceData.company;
+                    modalStartDate.value = experienceData.startDate;
+                    modalEndDate.value = experienceData.endDate;
+                    modalDescription.value = experienceData.description;
+                } else {
+                    modalJobTitle.value = '';
+                    modalCompany.value = '';
+                    modalStartDate.value = '';
+                    modalEndDate.value = '';
+                    modalDescription.value = '';
+                }
+                experienceModal.style.display = 'flex';
+                modalJobTitle.focus();
+            }
+
+            function closeExperienceModal() {
+                experienceModal.style.display = 'none';
+                editingExperience = null;
+            }
+
+            function saveExperience() {
+                if (
+                    !modalJobTitle.value.trim() ||
+                    !modalCompany.value.trim() ||
+                    !modalStartDate.value.trim() ||
+                    !modalEndDate.value.trim()
+                ) {
+                    alert('Please fill in required fields');
+                    return;
+                }
+                const data = {
+                    jobTitle: modalJobTitle.value.trim(),
+                    company: modalCompany.value.trim(),
+                    startDate: modalStartDate.value.trim(),
+                    endDate: modalEndDate.value.trim(),
+                    description: modalDescription.value.trim(),
+                };
+                if (editingExperience) {
+                    updateExperience(editingExperience, data);
+                } else {
+                    createExperience(data);
+                }
+                closeExperienceModal();
+            }
+
+            function createExperience(data) {
+                const experienceEl = experienceTemplate.cloneNode(true);
+                experienceEl.querySelector('.job-title').textContent = data.jobTitle;
+                experienceEl.querySelector('.company-name').textContent = data.company;
+                experienceEl.querySelector('.date-range').textContent =
+                    data.startDate + ' - ' + data.endDate;
+                experienceEl.querySelector('.description').textContent = data.description;
+
+                const root = experienceEl.querySelector('.experience-item');
+
+                // Add event listeners for edit/delete
+                root.querySelector('.edit-experience').addEventListener('click', () => {
+                    editingExperience = root;
+                    openExperienceModal({
+                        jobTitle: data.jobTitle,
+                        company: data.company,
+                        startDate: data.startDate,
+                        endDate: data.endDate,
+                        description: data.description,
+                    });
+                });
+                root.querySelector('.delete-experience').addEventListener('click', () => {
+                    if (confirm('Delete this experience?')) {
+                        root.remove();
+                    }
+                });
+
+                experienceContainer.appendChild(experienceEl);
+            }
+
+            function updateExperience(root, data) {
+                root.querySelector('.job-title').textContent = data.jobTitle;
+                root.querySelector('.company-name').textContent = data.company;
+                root.querySelector('.date-range').textContent = data.startDate + ' - ' + data.endDate;
+                root.querySelector('.description').textContent = data.description;
+            }
+
+            // --- Education Management --- //
+            addEducationBtn.addEventListener('click', e => {
+                editingEducation = null;
+                openEducationModal();
+            });
+
+            closeEducationModalBtn.addEventListener('click', e => {
+                closeEducationModal();
+            });
+            cancelEducationBtn.addEventListener('click', e => {
+                closeEducationModal();
+            });
+
+            saveEducationBtn.addEventListener('click', e => {
+                saveEducation();
+            });
+
+            function openEducationModal(educationData) {
+                if (educationData) {
+                    modalDegree.value = educationData.degree;
+                    modalInstitution.value = educationData.institution;
+                    modalEducationStart.value = educationData.startDate;
+                    modalEducationEnd.value = educationData.endDate;
+                } else {
+                    modalDegree.value = '';
+                    modalInstitution.value = '';
+                    modalEducationStart.value = '';
+                    modalEducationEnd.value = '';
+                }
+                educationModal.style.display = 'flex';
+                modalDegree.focus();
+            }
+
+            function closeEducationModal() {
+                educationModal.style.display = 'none';
+                editingEducation = null;
+            }
+
+            function saveEducation() {
+                if (
+                    !modalDegree.value.trim() ||
+                    !modalInstitution.value.trim() ||
+                    !modalEducationStart.value.trim() ||
+                    !modalEducationEnd.value.trim()
+                ) {
+                    alert('Please fill in required fields');
+                    return;
+                }
+                const data = {
+                    degree: modalDegree.value.trim(),
+                    institution: modalInstitution.value.trim(),
+                    startDate: modalEducationStart.value.trim(),
+                    endDate: modalEducationEnd.value.trim(),
+                };
+                if (editingEducation) {
+                    updateEducation(editingEducation, data);
+                } else {
+                    createEducation(data);
+                }
+                closeEducationModal();
+            }
+
+            function createEducation(data) {
+                const educationEl = educationTemplate.cloneNode(true);
+                educationEl.querySelector('.degree').textContent = data.degree;
+                educationEl.querySelector('.institution').textContent = data.institution;
+                educationEl.querySelector('.education-date').textContent =
+                    data.startDate + ' - ' + data.endDate;
+
+                const root = educationEl.querySelector('.education-item');
+
+                root.querySelector('.edit-education').addEventListener('click', () => {
+                    editingEducation = root;
+                    openEducationModal({
+                        degree: data.degree,
+                        institution: data.institution,
+                        startDate: data.startDate,
+                        endDate: data.endDate,
+                    });
+                });
+                root.querySelector('.delete-education').addEventListener('click', () => {
+                    if (confirm('Delete this education?')) {
+                        root.remove();
+                    }
+                });
+
+                educationContainer.appendChild(educationEl);
+            }
+
+            function updateEducation(root, data) {
+                root.querySelector('.degree').textContent = data.degree;
+                root.querySelector('.institution').textContent = data.institution;
+                root.querySelector('.education-date').textContent =
+                    data.startDate + ' - ' + data.endDate;
+            }
+
+            // --- Certificate Management --- //
+            addCertificateBtn.addEventListener('click', e => {
+                editingCertificate = null;
+                openCertificateModal();
+            });
+
+            closeCertificateModalBtn.addEventListener('click', e => {
+                closeCertificateModal();
+            });
+            cancelCertificateBtn.addEventListener('click', e => {
+                closeCertificateModal();
+            });
+
+            saveCertificateBtn.addEventListener('click', e => {
+                saveCertificate();
+            });
+
+            function openCertificateModal(certData) {
+                if (certData) {
+                    modalCertificateName.value = certData.name;
+                    modalIssuingOrg.value = certData.organization;
+                    modalCertificateDate.value = certData.date;
+                } else {
+                    modalCertificateName.value = '';
+                    modalIssuingOrg.value = '';
+                    modalCertificateDate.value = '';
+                }
+                certificateModal.style.display = 'flex';
+                modalCertificateName.focus();
+            }
+
+            function closeCertificateModal() {
+                certificateModal.style.display = 'none';
+                editingCertificate = null;
+            }
+
+            function saveCertificate() {
+                if (
+                    !modalCertificateName.value.trim() ||
+                    !modalIssuingOrg.value.trim() ||
+                    !modalCertificateDate.value.trim()
+                ) {
+                    alert('Please fill in required fields');
+                    return;
+                }
+                const data = {
+                    name: modalCertificateName.value.trim(),
+                    organization: modalIssuingOrg.value.trim(),
+                    date: modalCertificateDate.value.trim(),
+                };
+                if (editingCertificate) {
+                    updateCertificate(editingCertificate, data);
+                } else {
+                    createCertificate(data);
+                }
+                closeCertificateModal();
+            }
+
+            function createCertificate(data) {
+                const certEl = certificateTemplate.cloneNode(true);
+                certEl.querySelector('.certificate-name').textContent = data.name;
+                certEl.querySelector('.issuing-organization').textContent = data.organization;
+                certEl.querySelector('.certificate-date').textContent = data.date;
+
+                const root = certEl.querySelector('.certificate-item');
+
+                root.querySelector('.edit-certificate').addEventListener('click', () => {
+                    editingCertificate = root;
+                    openCertificateModal({
+                        name: data.name,
+                        organization: data.organization,
+                        date: data.date,
+                    });
+                });
+                root.querySelector('.delete-certificate').addEventListener('click', () => {
+                    if (confirm('Delete this certificate?')) {
+                        root.remove();
+                    }
+                });
+
+                certificatesContainer.appendChild(certEl);
+            }
+
+            function updateCertificate(root, data) {
+                root.querySelector('.certificate-name').textContent = data.name;
+                root.querySelector('.issuing-organization').textContent = data.organization;
+                root.querySelector('.certificate-date').textContent = data.date;
+            }
+
+            // --- Skills Management --- //
+            addSkillBtn.addEventListener('click', e => {
+                modalSkillName.value = '';
+                skillInputModal.style.display = 'flex';
+                modalSkillName.focus();
+            });
+            closeSkillModalBtn.addEventListener('click', e => {
+                skillInputModal.style.display = 'none';
+            });
+            cancelSkillBtn.addEventListener('click', e => {
+                skillInputModal.style.display = 'none';
+            });
+            saveSkillBtn.addEventListener('click', e => {
+                const skillName = modalSkillName.value.trim();
+                if (!skillName) {
+                    alert('Please enter a skill name.');
+                    return;
+                }
+                createSkill(skillName);
+                skillInputModal.style.display = 'none';
+            });
+
+            function createSkill(name) {
+                const skillEl = skillTemplate.cloneNode(true);
+                skillEl.querySelector('.skill-name').textContent = name;
+
+                const root = skillEl.querySelector('.skill-item');
+
+                root.querySelector('.delete-skill').addEventListener('click', () => {
+                    root.remove();
+                });
+
+                skillsContainer.appendChild(skillEl);
+            }
+
+            // --- Preview Section --- //
+            previewBtn.addEventListener('click', () => {
+                renderPreview();
+                previewSection.classList.remove('hidden');
+                previewSection.setAttribute('aria-hidden', 'false');
+                previewSection.focus();
+            });
+            closePreview.addEventListener('click', () => {
+                previewSection.classList.add('hidden');
+                previewSection.setAttribute('aria-hidden', 'true');
+            });
+
+            // --- PDF Download --- //
+            downloadBtn.addEventListener('click', async () => {
+                renderPreview();
+                await generatePDF();
+            });
+
+            function renderPreview() {
+                // Clear previous content
+                resumePreview.innerHTML = '';
+
+                // Personal details container
+                const personalDiv = document.createElement('div');
+                personalDiv.className = 'mb-6';
+
+                personalDiv.innerHTML = `
+                    <h1 style="font-size: 2rem; font-weight: bold; color: #6b5b95;">
+                    ${fullNameInput.value ? sanitizeText(fullNameInput.value) : 'Your Name'}
+                    </h1>
+                    <p style="font-size: 1rem; font-weight: 600; color: #ff69b4;">
+                    ${jobTitleInput.value ? sanitizeText(jobTitleInput.value) : 'Job Title'}
+                    </p>
+                    <p style="color: #4a4a4a; margin-top: 6px;">
+                    Email: ${emailInput.value ? sanitizeText(emailInput.value) : ''}<br/>
+                    Phone: ${phoneInput.value ? sanitizeText(phoneInput.value) : ''}<br/>
+                    Location: ${locationInput.value ? sanitizeText(locationInput.value) : ''}<br/>
+                    Website: ${
+                        websiteInput.value
+                            ? `<a href="${sanitizeText(websiteInput.value)}" target="_blank" rel="noopener noreferrer" style="color:#feb236;">${sanitizeText(
+                                  websiteInput.value
+                              )}</a>`
+                            : ''
+                    }
+                    </p>
+                `;
+                resumePreview.appendChild(personalDiv);
+
+                // Summary
+                if (summaryInput.value.trim()) {
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.style.marginBottom = '16px';
+                    summaryDiv.innerHTML = `<h2 style="border-bottom: 2px solid #ff69b4; padding-bottom: 4px; color: #6b5b95;">Professional Summary</h2><p style="color: #4a4a4a;">${sanitizeText(
+                        summaryInput.value
+                    ).replace(/\n/g, '<br>')}</p>`;
+                    resumePreview.appendChild(summaryDiv);
+                }
+
+                // Experience
+                if (experienceContainer.children.length > 0) {
+                    const expDiv = document.createElement('div');
+                    expDiv.style.marginBottom = '16px';
+                    expDiv.innerHTML = `<h2 style="border-bottom: 2px solid #ff69b4; padding-bottom: 4px; color: #6b5b95;">Work Experience</h2>`;
+                    const ul = document.createElement('ul');
+                    ul.style.paddingLeft = '20px';
+                    for (const item of experienceContainer.children) {
+                        const li = document.createElement('li');
+                        li.style.marginBottom = '8px';
+                        li.innerHTML = `<strong>${sanitizeText(
+                            item.querySelector('.job-title').textContent
+                        )}</strong> at <em>${sanitizeText(
+                            item.querySelector('.company-name').textContent
+                        )}</em> (${sanitizeText(
+                            item.querySelector('.date-range').textContent
+                        )})<br/>${sanitizeText(
+                            item.querySelector('.description').textContent
+                        ).replace(/\n/g, '<br>')}`;
+                        ul.appendChild(li);
+                    }
+                    expDiv.appendChild(ul);
+                    resumePreview.appendChild(expDiv);
+                }
+
+                // Education
+                if (educationContainer.children.length > 0) {
+                    const eduDiv = document.createElement('div');
+                    eduDiv.style.marginBottom = '16px';
+                    eduDiv.innerHTML = `<h2 style="border-bottom: 2px solid #ff69b4; padding-bottom: 4px; color: #6b5b95;">Education</h2>`;
+                    const ul = document.createElement('ul');
+                    ul.style.paddingLeft = '20px';
+                    for (const item of educationContainer.children) {
+                        const li = document.createElement('li');
+                        li.style.marginBottom = '8px';
+                        li.innerHTML = `<strong>${sanitizeText(
+                            item.querySelector('.degree').textContent
+                        )}</strong> at <em>${sanitizeText(
+                            item.querySelector('.institution').textContent
+                        )}</em> (${sanitizeText(item.querySelector('.education-date').textContent)})`;
+                        ul.appendChild(li);
+                    }
+                    eduDiv.appendChild(ul);
+                    resumePreview.appendChild(eduDiv);
+                }
+
+                // Skills
+                if (skillsContainer.children.length > 0) {
+                    const skillsDiv = document.createElement('div');
+                    skillsDiv.style.marginBottom = '16px';
+                    skillsDiv.innerHTML = `<h2 style="border-bottom: 2px solid #ff69b4; padding-bottom: 4px; color: #6b5b95;">Skills</h2>`;
+                    const ul = document.createElement('ul');
+                    ul.style.paddingLeft = '20px';
+                    ul.style.display = 'flex';
+                    ul.style.flexWrap = 'wrap';
+                    ul.style.gap = '10px';
+                    for (const item of skillsContainer.children) {
+                        const li = document.createElement('li');
+                        li.style.background = '#feb236';
+                        li.style.color = '#6b5b95';
+                        li.style.padding = '4px 10px';
+                        li.style.borderRadius = '15px';
+                        li.style.fontWeight = '600';
+                        li.textContent = item.querySelector('.skill-name').textContent;
+                        ul.appendChild(li);
+                    }
+                    skillsDiv.appendChild(ul);
+                    resumePreview.appendChild(skillsDiv);
+                }
+
+                // Certifications
+                if (certificatesContainer.children.length > 0) {
+                    const certDiv = document.createElement('div');
+                    certDiv.innerHTML = `<h2 style="border-bottom: 2px solid #ff69b4; padding-bottom: 4px; color: #6b5b95;">Certifications</h2>`;
+                    const ul = document.createElement('ul');
+                    ul.style.paddingLeft = '20px';
+                    for (const item of certificatesContainer.children) {
+                        const li = document.createElement('li');
+                        li.style.marginBottom = '8px';
+                        li.innerHTML = `<strong>${sanitizeText(
+                            item.querySelector('.certificate-name').textContent
+                        )}</strong> from <em>${sanitizeText(
+                            item.querySelector('.issuing-organization').textContent
+                        )}</em> (${sanitizeText(item.querySelector('.certificate-date').textContent)})`;
+                        ul.appendChild(li);
+                    }
+                    certDiv.appendChild(ul);
+                    resumePreview.appendChild(certDiv);
+                }
+            }
+
+            async function generatePDF() {
+                try {
+                    // Temporarily scale resumes maximum width for PDF quality
+                    let options = {
+                        scale: 2,
+                        useCORS: true,
+                        scrollY: -window.scrollY,
+                    };
+                    const canvas = await html2canvas(resumePreview, options);
+                    const imgData = canvas.toDataURL('image/png');
+
+                    const pdf = new jspdf.jsPDF({
+                        orientation: 'portrait',
+                        unit: 'pt',
+                        format: 'a4',
+                    });
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+
+                    // fit image to PDF page size preserving aspect ratio
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const pdfWidth = pageWidth * 0.9;
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    let position = 30;
+                    pdf.addImage(imgData, 'PNG', (pageWidth - pdfWidth) / 2, position, pdfWidth, pdfHeight);
+
+                    pdf.save('portfolio.pdf');
+                } catch (err) {
+                    alert('Error generating PDF: ' + err.message);
+                }
+            }
+
+            // Clear data on logout or reset
+            function clearAllData() {
+                // Clear profile
+                portfolioForm.reset();
+
+                // Clear experience
+                experienceContainer.innerHTML = '';
+                // Clear education
+                educationContainer.innerHTML = '';
+                // Clear skills
+                skillsContainer.innerHTML = '';
+                // Clear certs
+                certificatesContainer.innerHTML = '';
+            }
+
+            // --- Keyboard navigation support for modals (close on ESC) ---
+            window.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    if (experienceModal.style.display === 'flex') closeExperienceModal();
+                    if (educationModal.style.display === 'flex') closeEducationModal();
+                    if (certificateModal.style.display === 'flex') closeCertificateModal();
+                    if (skillInputModal.style.display === 'flex') skillInputModal.style.display = 'none';
+                    if (!previewSection.classList.contains('hidden')) {
+                        previewSection.classList.add('hidden');
+                        previewSection.setAttribute('aria-hidden', 'true');
+                    }
+                }
+            });
+
+            // --- Initialize default view ---
+            showLogin();
+        })();
+
+        // Sanitize text to prevent HTML injection in preview
+        function sanitizeText(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+
